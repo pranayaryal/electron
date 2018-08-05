@@ -17,6 +17,7 @@
 #include "atom/browser/net/atom_url_request_job_factory.h"
 #include "atom/browser/net/cookie_details.h"
 #include "atom/browser/net/http_protocol_handler.h"
+#include "atom/browser/special_storage_policy.h"
 #include "atom/browser/web_view_manager.h"
 #include "atom/common/atom_version.h"
 #include "atom/common/chrome_version.h"
@@ -187,6 +188,12 @@ content::PermissionManager* AtomBrowserContext::GetPermissionManager() {
   if (!permission_manager_.get())
     permission_manager_.reset(new AtomPermissionManager);
   return permission_manager_.get();
+}
+
+storage::SpecialStoragePolicy* AtomBrowserContext::GetSpecialStoragePolicy() {
+  if (!storage_policy_)
+    storage_policy_.reset(new SpecialStoragePolicy);
+  return storage_policy_.get();
 }
 
 std::unique_ptr<net::CertVerifier> AtomBrowserContext::CreateCertVerifier(

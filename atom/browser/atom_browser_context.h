@@ -11,12 +11,17 @@
 #include "base/callback_list.h"
 #include "brightray/browser/browser_context.h"
 
+namespace storage {
+class SpecialStoragePolicy;
+}
+
 namespace atom {
 
 class AtomBlobReader;
 class AtomDownloadManagerDelegate;
 class AtomNetworkDelegate;
 class AtomPermissionManager;
+class SpecialStoragePolicy;
 class WebViewManager;
 struct CookieDetails;
 
@@ -54,6 +59,7 @@ class AtomBrowserContext : public brightray::BrowserContext {
   content::DownloadManagerDelegate* GetDownloadManagerDelegate() override;
   content::BrowserPluginGuestManager* GetGuestManager() override;
   content::PermissionManager* GetPermissionManager() override;
+  storage::SpecialStoragePolicy* GetSpecialStoragePolicy() override;
 
   // brightray::BrowserContext:
   void RegisterPrefs(PrefRegistrySimple* pref_registry) override;
@@ -77,6 +83,7 @@ class AtomBrowserContext : public brightray::BrowserContext {
   std::unique_ptr<AtomDownloadManagerDelegate> download_manager_delegate_;
   std::unique_ptr<WebViewManager> guest_manager_;
   std::unique_ptr<AtomPermissionManager> permission_manager_;
+  std::unique_ptr<SpecialStoragePolicy> storage_policy_;
   std::unique_ptr<AtomBlobReader> blob_reader_;
   std::string user_agent_;
   bool use_cache_;

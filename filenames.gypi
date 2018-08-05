@@ -315,6 +315,8 @@
       'atom/browser/render_process_preferences.h',
       'atom/browser/session_preferences.cc',
       'atom/browser/session_preferences.h',
+      'atom/browser/special_storage_policy.cc',
+      'atom/browser/special_storage_policy.h',
       'atom/browser/ui/accelerator_util.cc',
       'atom/browser/ui/accelerator_util.h',
       'atom/browser/ui/accelerator_util_mac.mm',

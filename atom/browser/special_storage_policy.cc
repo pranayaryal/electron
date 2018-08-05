@@ -1,10 +1,10 @@
-// Copyright 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
+// Copyright (c) 2018 GitHub, Inc.
+// Use of this source code is governed by the MIT license that can be
 // found in the LICENSE file.
 
-#include "brightray/browser/special_storage_policy.h"
+#include "atom/browser/special_storage_policy.h"
 
-namespace brightray {
+namespace atom {
 
 SpecialStoragePolicy::SpecialStoragePolicy() {}
 
@@ -38,4 +38,4 @@ bool SpecialStoragePolicy::ShouldDeleteCookieOnExit(const GURL& origin) {
   return false;
 }
 
-}  // namespace brightray
+}  // namespace atom
