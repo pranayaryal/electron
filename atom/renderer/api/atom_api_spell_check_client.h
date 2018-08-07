@@ -5,8 +5,8 @@
 #ifndef ATOM_RENDERER_API_ATOM_API_SPELL_CHECK_CLIENT_H_
 #define ATOM_RENDERER_API_ATOM_API_SPELL_CHECK_CLIENT_H_
 
+#include <map>
 #include <string>
-#include <vector>
 
 #include "base/callback.h"
 #include "base/memory/weak_ptr.h"
@@ -15,6 +15,8 @@
 #include "third_party/WebKit/public/platform/WebSpellCheckPanelHostClient.h"
 #include "third_party/WebKit/public/platform/WebVector.h"
 #include "third_party/WebKit/public/web/WebTextCheckClient.h"
+#include "third_party/WebKit/public/web/WebTextCheckingCompletion.h"
+#include "third_party/WebKit/public/web/WebTextCheckingResult.h"
 
 namespace blink {
 struct WebTextCheckingResult;
@@ -67,11 +69,11 @@ class SpellCheckClient : public blink::WebSpellCheckPanelHostClient,
   // Check the spelling of text.
   void SpellCheckText(const base::string16& text,
                       bool stop_at_first_result,
-                      std::vector<blink::WebTextCheckingResult>* results);
+                      blink::WebTextCheckingCompletion*);
 
   // Call JavaScript to check spelling a word.
-  bool SpellCheckWord(const SpellCheckScope& scope,
-                      const base::string16& word_to_check) const;
+  void SpellCheckWords(const SpellCheckScope& scope,
+                       const std::vector<base::string16>& words);
 
   // Returns whether or not the given word is a contraction of valid words
   // (e.g. "word:word").
@@ -80,6 +82,9 @@ class SpellCheckClient : public blink::WebSpellCheckPanelHostClient,
 
   // Performs spell checking from the request queue.
   void PerformSpellCheck(SpellcheckRequest* param);
+
+  void OnSpellCheckDone(int32_t request_id,
+                        const std::vector<base::string16>& misspelt_words);
 
   // Represents character attributes used for filtering out characters which
   // are not supported by this SpellCheck object.
@@ -102,6 +107,16 @@ class SpellCheckClient : public blink::WebSpellCheckPanelHostClient,
   v8::Persistent<v8::Context> context_;
   mate::ScopedPersistent<v8::Object> provider_;
   mate::ScopedPersistent<v8::Function> spell_check_;
+
+  struct WordsRequest {
+    std::map<base::string16, std::vector<blink::WebTextCheckingResult>>
+        word_map_;
+    blink::WebTextCheckingCompletion* completion_handler_;
+  };
+
+  std::map<int32_t, WordsRequest> requests_;
+
+  static int32_t request_id;
 
   DISALLOW_COPY_AND_ASSIGN(SpellCheckClient);
 };
