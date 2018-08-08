@@ -191,6 +191,7 @@ group("electron") {
 
 static_library("electron_lib") {
   configs += [ "//v8:external_startup_data" ]
+  configs += [ "//third_party/electron_node:node_internals" ]
 
   public_configs = [
     ":branding",
@@ -200,7 +201,7 @@ static_library("electron_lib") {
   deps = [
     ":atom_js2c",
     "brightray",
-    "build/node",
+    "//third_party/electron_node",
     "native_mate",
     "//base",
     "//base:i18n",
@@ -439,7 +440,7 @@ if (is_mac) {
   if (is_component_build) {
     bundle_data("electron_framework_libraries") {
       public_deps = [
-        "build/node",
+        "//third_party/electron_node",
       ]
       sources = [
         "$root_out_dir/libnode.dylib",
