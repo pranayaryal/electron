@@ -77,8 +77,11 @@ class SpellCheckClient : public blink::WebSpellCheckPanelHostClient,
 
   // Returns whether or not the given word is a contraction of valid words
   // (e.g. "word:word").
-  bool IsValidContraction(const SpellCheckScope& scope,
-                          const base::string16& word);
+  // Output variable contraction_words will contain individual
+  // words in the contraction.
+  bool IsContraction(const SpellCheckScope& scope,
+                     const base::string16& word,
+                     std::vector<base::string16>& contraction_words);
 
   // Performs spell checking from the request queue.
   void PerformSpellCheck(SpellcheckRequest* param);

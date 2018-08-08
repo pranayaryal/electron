@@ -169,23 +169,35 @@ void SpellCheckClient::SpellCheckText(
     if (status == SpellcheckWordIterator::IS_SKIPPABLE)
       continue;
 
-    // If the given word is a concatenated word of two or more valid words
-    // (e.g. "hello:hello"), we should treat it as a valid word.
-    // if (IsValidContraction(scope, word))
-    //   continue;
-
-    if (stop_at_first_result)
+    if (stop_at_first_result)  // TODO(nitsakh): verify this
       return;
 
-    blink::WebTextCheckingResult result;
-    result.location = word_start;
-    result.length = word_length;
-    words.push_back(word);
-    words_request.word_map_[word].push_back(result);
+    // If the given word is a concatenated word of two or more valid words
+    // (e.g. "hello:hello"), we should treat it as a valid word.
+    std::vector<base::string16> contraction_words;
+    if (!IsContraction(scope, word, contraction_words)) {
+      blink::WebTextCheckingResult result;
+      result.location = word_start;
+      result.length = word_length;
+      words.push_back(word);
+      words_request.word_map_[word].push_back(result);
+    } else {
+      // For a contraction, we want check the spellings of each individual
+      // part, but mark the entire word incorrect if any part is misspelt
+      // Hence, we use the same word_start and word_length values for every
+      // part of the contraction.
+      for (const auto& w : contraction_words) {
+        blink::WebTextCheckingResult result;
+        result.location = word_start;
+        result.length = word_length;
+        words.push_back(w);
+        words_request.word_map_[w].push_back(result);
+      }
+    }
   }
   requests_[++request_id] = words_request;
-  // Found a word (or a contraction) that the spellchecker can check the
-  // spelling of.
+
+  // Send out all the words data to the spellchecker to check
   SpellCheckWords(scope, words);
 }
 
@@ -224,15 +236,20 @@ void SpellCheckClient::SpellCheckWords(
 
   v8::Local<v8::Value> args[] = {mate::ConvertToV8(isolate_, words),
                                  templ->GetFunction()};
+  // Call javascript with the words and the callback function
   scope.spell_check_->Call(scope.provider_, 2, args);
 }
 
-// Returns whether or not the given string is a valid contraction.
+// Returns whether or not the given string is a contraction.
 // This function is a fall-back when the SpellcheckWordIterator class
 // returns a concatenated word which is not in the selected dictionary
 // (e.g. "in'n'out") but each word is valid.
-bool SpellCheckClient::IsValidContraction(const SpellCheckScope& scope,
-                                          const base::string16& contraction) {
+// Output variable contraction_words will contain individual
+// words in the contraction.
+bool SpellCheckClient::IsContraction(
+    const SpellCheckScope& scope,
+    const base::string16& contraction,
+    std::vector<base::string16>& contraction_words) {
   DCHECK(contraction_iterator_.IsInitialized());
 
   contraction_iterator_.SetText(contraction.c_str(), contraction.length());
@@ -240,7 +257,6 @@ bool SpellCheckClient::IsValidContraction(const SpellCheckScope& scope,
   base::string16 word;
   int word_start;
   int word_length;
-
   for (auto status =
            contraction_iterator_.GetNextWord(&word, &word_start, &word_length);
        status != SpellcheckWordIterator::IS_END_OF_TEXT;
@@ -249,10 +265,9 @@ bool SpellCheckClient::IsValidContraction(const SpellCheckScope& scope,
     if (status == SpellcheckWordIterator::IS_SKIPPABLE)
       continue;
 
-    // if (!SpellCheckWord(scope, word))
-    //   return false;
+    contraction_words.push_back(word);
   }
-  return true;
+  return contraction_words.size() > 1;
 }
 
 void SpellCheckClient::PerformSpellCheck(SpellcheckRequest* param) {
