@@ -94,6 +94,7 @@ process. This has two important implications:
 following code from an Electron app works:
 
 ```javascript
+
 const fs = require('fs')
 
 const root = fs.readdirSync('/')
